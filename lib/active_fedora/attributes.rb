@@ -172,6 +172,10 @@ module ActiveFedora
       end
 
       def property name, properties={}, &block
+        if properties.key?(:property_filter)
+          properties[:property_filter].init_property(name, properties) if properties[:property_filter].respond_to?(:init_property)
+        end
+
         if properties.key?(:predicate)
           define_active_triple_accessor(name, properties, &block)
         elsif properties.key?(:delegate_to)
@@ -213,19 +217,19 @@ module ActiveFedora
 
       def warn_duplicate_predicates new_name, new_properties
         new_predicate = new_properties[:predicate]
-        self.properties.select{|k, existing| existing.predicate == new_predicate}.each do |key, value| 
+        self.properties.select{|k, existing| existing.predicate == new_predicate}.each do |key, value|
           ActiveFedora::Base.logger.warn "Same predicate (#{new_predicate}) used for properties #{key} and #{new_name}"
         end
       end
 
       # @param [Symbol] field the field to find or create
-      # @param [Class] klass the class to use to delegate the attribute (e.g. 
+      # @param [Class] klass the class to use to delegate the attribute (e.g.
       #                ActiveTripleAttribute, OmAttribute, or RdfDatastreamAttribute)
-      # @param [Hash] args 
+      # @param [Hash] args
       # @option args [String] :delegate_target the path to the delegate
       # @option args [Class] :klass the class to create
       # @option args [true,false] :multiple (false) true for multi-value fields
-      # @option args [Array<Symbol>] :at path to a deep node 
+      # @option args [Array<Symbol>] :at path to a deep node
       # @return [DelegatedAttribute] the found or created attribute
       def find_or_create_defined_attribute(field, klass, args)
         delegated_attributes[field] ||= klass.new(field, args)
@@ -252,7 +256,7 @@ module ActiveFedora
 
       def attribute_class(klass)
         if klass < ActiveFedora::RDFDatastream
-          RdfDatastreamAttribute 
+          RdfDatastreamAttribute
         else
           OmAttribute
         end

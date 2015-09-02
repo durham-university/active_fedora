@@ -92,6 +92,7 @@ module ActiveFedora #:nodoc:
     autoload :Persistence
     autoload :ProfileIndexingService
     autoload :Property
+    autoload :PropertyFilters
     autoload :QualifiedDublinCoreDatastream
     autoload :Querying
     autoload :QueryResultBuilder

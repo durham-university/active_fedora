@@ -11,6 +11,23 @@ module ActiveFedora::Attributes
         define_singular_id_reader(mixin, name) unless options[:cast] == false
         define_singular_writers(mixin, name)
       end
+
+      if reflection.property_filter
+        mixin = model.generated_property_methods
+        name = reflection.term
+        mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          alias #{name}_unfiltered= #{name}=
+          def #{name}=(value)
+            self.#{name}_unfiltered = #{reflection.property_filter}.set_value(value)
+            value
+          end
+
+          alias #{name}_unfiltered #{name}
+          def #{name}(*args)
+            #{reflection.property_filter}.get_value(#{name}_unfiltered(*args),*args)
+          end
+        CODE
+      end
     end
 
     def self.define_writers(mixin, name)
